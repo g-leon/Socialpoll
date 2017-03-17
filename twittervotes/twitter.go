@@ -7,6 +7,10 @@ import (
 	"log"
 	"github.com/joeshaw/envdecode"
 	"github.com/garyburd/go-oauth/oauth"
+	"sync"
+	"net/http"
+	"net/url"
+	"strconv"
 )
 
 var (
@@ -14,6 +18,8 @@ var (
 	reader     io.ReadCloser
 	authClient *oauth.Client
 	creds      *oauth.Credentials
+	authSetupOnce sync.Once
+	httpClient *http.Client
 )
 
 // dial ensures that the connection is closed and
@@ -74,3 +80,20 @@ func setupTwitterAuth() {
 	}
 }
 
+// makeRequest makes sure the initialisation code runs only once.
+func makeRequest(req *http.Request, params url.Values) (*http.Response, error) {
+	authSetupOnce.Do(func () {
+		setupTwitterAuth()
+		httpClient = &http.Client{
+			Transport: &http.Transport{
+				Dial: dial,
+			},
+		}
+	})
+	formEnc := params.Encode()
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Length", strconv.Itoa(len(formEnc)))
+	req.Header.Set("Authorization", authClient.AuthorizationHeader(creds, "POST", req.URL, params))
+
+	return httpClient.Do(req)
+}
