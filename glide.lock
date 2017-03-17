@@ -1,0 +1,8 @@
+hash: d23e5a7649a30c236bb0c210861e90c7fc6ca48929afe784960618d60f614a7b
+updated: 2017-03-17T17:03:01.85860412+02:00
+imports:
+- name: github.com/joeshaw/envdecode
+  version: 32118ea5f56d5358408e78d150be1843a695e35c
+- name: github.com/pkg/errors
+  version: ff09b135c25aae272398c51a07235b90a75aa4f0
+devImports: []
