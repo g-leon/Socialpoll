@@ -50,6 +50,9 @@ func startTwitterStream(stopChan <-chan struct{}, votes chan<- string) <-chan st
 	return stoppedchan
 }
 
+// readFromTwitter reloads the options from the database
+// each time it is called so the the program is updated without
+// having to restart it.
 func readFromTwitter(votes chan<- string) {
 	options, err := loadOptions()
 	if err != nil {
