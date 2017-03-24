@@ -1,3 +1,5 @@
 package: socialpoll
 import:
 - package: github.com/pkg/errors
+- package: github.com/bitly/go-nsq
+  version: v1.0.6
