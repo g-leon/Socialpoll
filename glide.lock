@@ -1,5 +1,5 @@
 hash: 5d206108cd5d8120f2d2f8cc4852ee27bca4fe1eb796dc458bf41074ee775a1c
-updated: 2017-03-24T15:48:31.908954341+02:00
+updated: 2017-03-24T15:59:17.961003807+02:00
 imports:
 - name: github.com/bitly/go-nsq
   version: d71fb89c9e0263aaed89645b0b168e11ccf597b1
@@ -7,10 +7,12 @@ imports:
   version: 4f191fd0442e75c0c73bd00e4f5f27d4c08312ee
   subpackages:
   - oauth
-- name: github.com/golang/snappy
-  version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/joeshaw/envdecode
   version: 32118ea5f56d5358408e78d150be1843a695e35c
+- name: github.com/mreiferson/go-snappystream
+  version: 028eae7ab5c4c9e2d1cb4c4ca1e53259bbe7e504
+  subpackages:
+  - snappy-go
 - name: github.com/pkg/errors
   version: ff09b135c25aae272398c51a07235b90a75aa4f0
 - name: gopkg.in/mgo.v2
