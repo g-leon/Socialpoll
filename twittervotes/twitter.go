@@ -1,25 +1,25 @@
 package main
 
 import (
-	"io"
-	"net"
-	"time"
-	"log"
-	"github.com/joeshaw/envdecode"
 	"github.com/garyburd/go-oauth/oauth"
-	"sync"
+	"github.com/joeshaw/envdecode"
+	"io"
+	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
+	"time"
 )
 
 var (
-	conn       net.Conn
-	reader     io.ReadCloser
-	authClient *oauth.Client
-	creds      *oauth.Credentials
+	conn          net.Conn
+	reader        io.ReadCloser
+	authClient    *oauth.Client
+	creds         *oauth.Credentials
 	authSetupOnce sync.Once
-	httpClient *http.Client
+	httpClient    *http.Client
 )
 
 // dial ensures that the connection is closed and
@@ -60,21 +60,21 @@ func closeConn() {
 // authenticate requests.
 func setupTwitterAuth() {
 	var ts struct {
-		ConsumerKey    string `env:"SP_TWITTER_KEY, required"`
-		ConsumerSecret string `env:"SP_TWITTER_SECRET, required"`
-		AccessToken    string `env:"SP_TWITTER_ACCESSTOKEN, required"`
-		AccessSecret   string `env:"SP_TWITTER_ACCESSSECRET, required"`
+		ConsumerKey    string `env:"SP_TWITTER_KEY,required"`
+		ConsumerSecret string `env:"SP_TWITTER_SECRET,required"`
+		AccessToken    string `env:"SP_TWITTER_ACCESSTOKEN,required"`
+		AccessSecret   string `env:"SP_TWITTER_ACCESSSECRET,required"`
 	}
 	if err := envdecode.Decode(&ts); err != nil {
 		log.Fatalln(err)
 	}
 	creds = &oauth.Credentials{
-		Token: ts.AccessToken,
+		Token:  ts.AccessToken,
 		Secret: ts.AccessSecret,
 	}
 	authClient = &oauth.Client{
 		Credentials: oauth.Credentials{
-			Token: ts.ConsumerKey,
+			Token:  ts.ConsumerKey,
 			Secret: ts.ConsumerSecret,
 		},
 	}
@@ -82,7 +82,7 @@ func setupTwitterAuth() {
 
 // makeRequest makes sure the initialisation code runs only once.
 func makeRequest(req *http.Request, params url.Values) (*http.Response, error) {
-	authSetupOnce.Do(func () {
+	authSetupOnce.Do(func() {
 		setupTwitterAuth()
 		httpClient = &http.Client{
 			Transport: &http.Transport{
