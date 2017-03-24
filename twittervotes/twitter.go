@@ -28,6 +28,28 @@ type tweet struct {
 	Text string
 }
 
+func startTwitterStream(stopChan <-chan struct{}, votes chan<- string) <-chan struct{} {
+	stoppedchan := make(chan struct{}, 1)
+	go func () {
+		defer func () {
+			stoppedchan <- struct{}{}
+		}()
+		for {
+			select {
+			case <- stopChan:
+				log.Println("stopping Twitter...")
+				return
+			default:
+				log.Println("Querying Twitter...")
+				readFromTwitter(votes)
+				log.Println("    (waiting)")
+				time.Sleep(10 * time.Second)
+			}
+		}
+	}()
+	return stoppedchan
+}
+
 func readFromTwitter(votes chan<- string) {
 	options, err := loadOptions()
 	if err != nil {
