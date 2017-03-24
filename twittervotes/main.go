@@ -109,9 +109,8 @@ func main() {
 			}
 			stoplock.Unlock()
 		}
-		<-twitterStoppedChan
-		close(votes)
-		<-publisherStoppedChan
 	}()
-
+	<-twitterStoppedChan
+	close(votes)
+	<-publisherStoppedChan
 }
