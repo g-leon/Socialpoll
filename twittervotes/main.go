@@ -4,9 +4,16 @@ import (
 	"gopkg.in/mgo.v2"
 	"log"
 	"github.com/bitly/go-nsq"
+	"sync"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-var db *mgo.Session
+var (
+	db *mgo.Session
+)
 
 type poll struct {
 	Options []string
@@ -62,5 +69,49 @@ func publishVotes(votes <-chan string) <-chan struct{} {
 
 
 func main() {
+	// graceful shutdown on system signals
+	var stoplock sync.Mutex // protects stop
+	stop := false
+	stopChan := make(chan struct{}, 1)
+	signalChan := make(chan os.Signal, 1)
+	go func() {
+		<-signalChan
+		stoplock.Lock()
+		stop = true
+		stoplock.Unlock()
+		log.Println("Stopping...")
+		stopChan <- struct{}{}
+		closeConn()
+	}()
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	if err := dialdb(); err != nil {
+		log.Fatalln("failed to dial MongoDb:", err)
+	}
+	defer closedb()
+
+	// start the system
+	votes := make(chan string)
+	publisherStoppedChan := publishVotes(votes)
+	twitterStoppedChan := startTwitterStream(stopChan, votes)
+
+	// This goroutine will call closeConn every minute
+	// causing the connection to die and cause
+	// readFromTwitter to be called all over again.
+	go func() {
+		for {
+			time.Sleep(1 * time.Minute)
+			closeConn()
+			stoplock.Lock()
+			if stop {
+				stoplock.Unlock()
+				return
+			}
+			stoplock.Unlock()
+		}
+		<-twitterStoppedChan
+		close(votes)
+		<-publisherStoppedChan
+	}()
 
 }
