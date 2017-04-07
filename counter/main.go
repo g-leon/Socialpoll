@@ -8,6 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"sync"
 	"github.com/bitly/go-nsq"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var (
@@ -20,6 +21,35 @@ func fatal(e error) {
 	fmt.Println(e)
 	flag.PrintDefaults()
 	fatalErr = e
+}
+
+func doCount(countsLock *sync.Mutex, counts *map[string]int, pollData *mgo.Collection) {
+	countsLock.Lock()
+	defer countsLock.Unlock()
+
+	if len(*counts) == 0 {
+		log.Println("No new votes, skipping database update")
+		return
+	}
+
+	log.Println("Updating database...")
+	log.Println(*counts)
+	ok := true
+	for option, count := range *counts {
+		sel := bson.M{"options": bson.M{"$in": []string{option}}}
+		up := bson.M{"$inc": bson.M{"results." + option:count}}
+
+		if _, err := pollData.UpdateAll(sel, up); err != nil {
+			log.Println("faile to update:", err)
+			ok = false
+		}
+	}
+
+	if ok {
+		log.Println("Finished updating database...")
+		*counts = nil // reset counts
+	}
+
 }
 
 func main() {
