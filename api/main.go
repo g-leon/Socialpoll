@@ -42,7 +42,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/polls/", withCORS(withAPIKey(s.handlePolls)))
-	log.Println("Starting web service on", mux)
+	log.Println("Starting web service on", *addr)
+	// TODO read
+	http.ListenAndServe(":8080", mux)
 	log.Println("Stopping...")
 }
 
