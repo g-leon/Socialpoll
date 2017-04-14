@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/bitly/go-nsq"
 	"gopkg.in/mgo.v2"
 	"log"
-	"github.com/bitly/go-nsq"
-	"sync"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -54,7 +54,7 @@ func publishVotes(votes <-chan string) <-chan struct{} {
 		return stopchan
 	}
 
-	go func () {
+	go func() {
 		for vote := range votes {
 			pub.Publish("votes", []byte(vote)) // publish vote
 		}
@@ -62,11 +62,10 @@ func publishVotes(votes <-chan string) <-chan struct{} {
 		pub.Stop()
 		log.Println("Publisher: Stopped")
 		stopchan <- struct{}{}
-	} ()
+	}()
 
 	return stopchan
 }
-
 
 func main() {
 	// graceful shutdown on system signals

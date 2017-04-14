@@ -1,22 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"flag"
-	"os"
-	"log"
-	"gopkg.in/mgo.v2"
-	"sync"
+	"fmt"
 	"github.com/bitly/go-nsq"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"time"
+	"log"
+	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 )
 
 var (
-	fatalErr error
-	counts map[string]int
+	fatalErr   error
+	counts     map[string]int
 	countsLock sync.Mutex
 )
 
@@ -29,7 +29,6 @@ func fatal(e error) {
 	flag.PrintDefaults()
 	fatalErr = e
 }
-
 
 // doCount checks to see whether there are any values in the counts map.
 // If there aren't it will log that it is skipping the update and wait
@@ -48,7 +47,7 @@ func doCount(countsLock *sync.Mutex, counts *map[string]int, pollData *mgo.Colle
 	ok := true
 	for option, count := range *counts {
 		sel := bson.M{"options": bson.M{"$in": []string{option}}}
-		up := bson.M{"$inc": bson.M{"results." + option:count}}
+		up := bson.M{"$inc": bson.M{"results." + option: count}}
 
 		if _, err := pollData.UpdateAll(sel, up); err != nil {
 			log.Println("faile to update:", err)
@@ -91,7 +90,7 @@ func main() {
 	}
 
 	// votes handler
-	q.AddHandler(nsq.HandlerFunc(func (m *nsq.Message) error {
+	q.AddHandler(nsq.HandlerFunc(func(m *nsq.Message) error {
 		countsLock.Lock()
 		defer countsLock.Unlock()
 		if counts == nil {
@@ -116,14 +115,12 @@ func main() {
 		select {
 		case <-ticker.C:
 			doCount(&countsLock, &counts, pollData)
-		case <- termChan:
+		case <-termChan:
 			ticker.Stop()
 			q.Stop()
-		case <- q.StopChan:
+		case <-q.StopChan:
 			// finished
 			return
 		}
 	}
 }
-
-

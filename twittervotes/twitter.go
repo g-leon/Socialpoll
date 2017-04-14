@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/garyburd/go-oauth/oauth"
 	"github.com/joeshaw/envdecode"
 	"io"
@@ -9,10 +10,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
-	"strings"
-	"encoding/json"
 )
 
 var (
@@ -30,13 +30,13 @@ type tweet struct {
 
 func startTwitterStream(stopChan <-chan struct{}, votes chan<- string) <-chan struct{} {
 	stoppedchan := make(chan struct{}, 1)
-	go func () {
-		defer func () {
+	go func() {
+		defer func() {
 			stoppedchan <- struct{}{}
 		}()
 		for {
 			select {
-			case <- stopChan:
+			case <-stopChan:
 				log.Println("stopping Twitter...")
 				return
 			default:
@@ -61,7 +61,7 @@ func readFromTwitter(votes chan<- string) {
 	}
 	u, err := url.Parse("https://stream.twitter.com/1.1/statuses/filter.json")
 	if err != nil {
-		log.Println("creating filter request failed:" , err)
+		log.Println("creating filter request failed:", err)
 		return
 	}
 	query := make(url.Values)
