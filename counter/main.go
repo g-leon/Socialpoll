@@ -9,6 +9,9 @@ import (
 	"sync"
 	"github.com/bitly/go-nsq"
 	"gopkg.in/mgo.v2/bson"
+	"time"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -17,7 +20,9 @@ var (
 	countsLock sync.Mutex
 )
 
-
+const (
+	updateDuration = 1 * time.Second
+)
 
 func fatal(e error) {
 	fmt.Println(e)
@@ -102,6 +107,23 @@ func main() {
 		return
 	}
 
+	// update database periodically with new counts
+	// or stop when a signal is received
+	ticker := time.NewTicker(updateDuration)
+	termChan := make(chan os.Signal, 1)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	for {
+		select {
+		case <-ticker.C:
+			doCount(&countsLock, &counts, pollData)
+		case <- termChan:
+			ticker.Stop()
+			q.Stop()
+		case <- q.StopChan:
+			// finished
+			return
+		}
+	}
 }
 
 
