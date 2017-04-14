@@ -26,6 +26,15 @@ func (s *Server) handlePolls(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		s.handlePollsDelete(w, r)
 		return
+	case "OPTIONS":
+		// If the browser asks for permissions to send a
+		// DELETE request, the API will respond by setting
+		// the Access-Control-Allow-Methods header to DELETE,
+		// thus overriding the default * value that is set
+		// in the withCORS wrapper handler.
+		w.Header().Add("Access-Control-Allow-Methods",  "DELETE")
+		respond(w, r, http.StatusOK, nil)
+		return
 	}
 
 	// not found
