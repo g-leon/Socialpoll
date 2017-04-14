@@ -1,6 +1,11 @@
 package main
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"gopkg.in/mgo.v2/bson"
+	"net/http"
+	"github.com/pkg/errors"
+	"gopkg.in/mgo.v2"
+)
 
 type poll struct {
 	ID      bson.ObjectId  `bson:"_id" json:"id"`
@@ -8,4 +13,52 @@ type poll struct {
 	Options []string       `json:"options"`
 	Results map[string]int `json:"results,omitempty"`
 	APIKey  string         `json:"apikey"`
+}
+
+func (s *Server) handlePolls(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		s.handlePollsGet(w, r)
+		return
+	case "POST":
+		s.handlePollsPost(w, r)
+		return
+	case "DELETE":
+		s.handlePollsDelete(w, r)
+		return
+	}
+
+	// not found
+	respondHTTPErr(w, r, http.StatusNotFound)
+}
+
+func (s *Server) handlePollsGet(w http.ResponseWriter, r *http.Request) {
+	session := s.db.Copy()
+	defer session.Close()
+
+	c := session.DB("ballots").C("polls")
+	var q *mgo.Query
+	p := NewPath(r.URL.Path)
+	if p.HasID() {
+		// get specific poll
+		q = c.FindId(bson.ObjectIdHex(p.ID))
+	} else {
+		// get all polls
+		q = c.Find(nil)
+	}
+
+	var result []*poll
+	if err := q.All(&result); err != nil {
+		respondErr(w, r, http.StatusInternalServerError, err)
+		return
+	}
+	respond(w, r, http.StatusOK, &result)
+}
+
+func (s *Server) handlePollsPost(w http.ResponseWriter, r *http.Request) {
+	respondErr(w, r, http.StatusInternalServerError, errors.New("not implemented"))
+}
+
+func (s *Server) handlePollsDelete(w http.ResponseWriter, r *http.Request) {
+	respondErr(w, r, http.StatusInternalServerError, errors.New("not implemented"))
 }
