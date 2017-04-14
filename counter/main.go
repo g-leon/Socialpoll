@@ -9,6 +9,7 @@ import (
 	"sync"
 	"github.com/bitly/go-nsq"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 var (
@@ -17,12 +18,18 @@ var (
 	countsLock sync.Mutex
 )
 
+
+
 func fatal(e error) {
 	fmt.Println(e)
 	flag.PrintDefaults()
 	fatalErr = e
 }
 
+
+// doCount checks to see whether there are any values in the counts map.
+// If there aren't it will log that it is skipping the update and wait
+// for next time.
 func doCount(countsLock *sync.Mutex, counts *map[string]int, pollData *mgo.Collection) {
 	countsLock.Lock()
 	defer countsLock.Unlock()
