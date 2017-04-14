@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"gopkg.in/mgo.v2"
+	"flag"
+	"log"
 )
 
 // Server is the API server.
@@ -22,7 +24,26 @@ type contextKey struct {
 var contextKeyAPIKey = &contextKey{"api-key"}
 
 func main() {
+	var (
+		addr = flag.String("addr", ":8080", "endpoint address")
+		mongo = flag.String("mongo", "localhost", "mongodb address")
+	)
 
+	log.Println("Dialing mongo", *mongo)
+	db, err := mgo.Dial(*mongo)
+	if err != nil {
+		log.Fatalln("failed to connect to mongo:", err)
+	}
+	defer db.Close()
+
+	s := &Server{
+		db: db,
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/polls/", withCORS(withAPIKey(s.handlePolls)))
+	log.Println("Starting web service on", mux)
+	log.Println("Stopping...")
 }
 
 // APIKey is a helper function that, given a context,
