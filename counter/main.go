@@ -9,7 +9,6 @@ import (
 	"sync"
 	"github.com/bitly/go-nsq"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 var (
