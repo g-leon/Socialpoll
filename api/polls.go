@@ -3,8 +3,8 @@ package main
 import (
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
-	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
+	"fmt"
 )
 
 type poll struct {
