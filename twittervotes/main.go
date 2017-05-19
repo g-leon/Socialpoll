@@ -91,8 +91,8 @@ func main() {
 
 	// start the system
 	votes := make(chan string)
-	publisherStoppedChan := publishVotes(votes)
 	twitterStoppedChan := startTwitterStream(stopChan, votes)
+	publisherStoppedChan := publishVotes(votes)
 
 	// This goroutine will call closeConn every minute
 	// causing the connection to die and cause
